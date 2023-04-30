@@ -150,8 +150,23 @@ contract TradingCenterTest is Test {
         //admin add ppl to whitelist
         vm.startPrank(address(UsdcAdmin));
         usdcUpgrade.addWhitelist(user1);
-        bool isWhitelist = usdcUpgrade.isWhitelisted(user1);
-        assertTrue(isWhitelist);
+        bool isUser1InWhitelist = usdcUpgrade.isWhitelisted(user1);
+        assertTrue(isUser1InWhitelist);
+        vm.stopPrank();
+
+        //ppl not in whitelist add others
+        vm.startPrank(user2);
+        vm.expectRevert();
+        usdcUpgrade.addWhitelist(address(123));
+        bool isNonUserWhitelist = usdcUpgrade.isWhitelisted(address(123));
+        assertTrue(!isNonUserWhitelist);
+        vm.stopPrank();
+
+        //ppl in whitelist add others
+        vm.startPrank(user1);
+        usdcUpgrade.addWhitelist(user2);
+        bool isUser2InWhitelist = usdcUpgrade.isWhitelisted(user2);
+        assertTrue(isUser2InWhitelist);
         vm.stopPrank();
 
         //mint
@@ -160,7 +175,6 @@ contract TradingCenterTest is Test {
         usdcUpgrade.mint(10 ether);
         uint256 balanceAfter = usdcUpgrade.balanceOf(user1);
         assertEq(balanceBefore + 10 ether, balanceAfter);
-        console.log(balanceAfter, balanceBefore);
         vm.stopPrank();
     }
 }
