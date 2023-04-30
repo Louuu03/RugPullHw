@@ -129,7 +129,6 @@ contract TradingCenterTest is Test {
 
     function testUsdcUpgrade() public {
         NewUsdc newUsdc;
-        NewUsdc proxyNewUsdc;
         address UsdcAddress = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
         address UsdcAdmin = 0x807a96288A1A408dBC13DE2b1d087d10356395d2;
         //Fork
@@ -138,14 +137,30 @@ contract TradingCenterTest is Test {
         );
         vm.selectFork(mainnetFork);
         vm.rollFork(17137129);
+        //Upgrade
         vm.startPrank(address(UsdcAdmin));
         usdcUpgrade = new NewUsdc();
         usdcUpgrade.initialize("USDC", "USDC", "USDC", 18);
         (bool success, ) = address(UsdcAddress).call(
             abi.encodeWithSignature("upgradeTo(address)", address(usdcUpgrade))
         );
-
         require(success, "Upgrade failed");
+        vm.stopPrank();
+
+        //admin add ppl to whitelist
+        vm.startPrank(address(UsdcAdmin));
+        usdcUpgrade.addWhitelist(user1);
+        bool isWhitelist = usdcUpgrade.isWhitelisted(user1);
+        assertTrue(isWhitelist);
+        vm.stopPrank();
+
+        //mint
+        vm.startPrank(user1);
+        uint256 balanceBefore = usdcUpgrade.balanceOf(user1);
+        usdcUpgrade.mint(10 ether);
+        uint256 balanceAfter = usdcUpgrade.balanceOf(user1);
+        assertEq(balanceBefore + 10 ether, balanceAfter);
+        console.log(balanceAfter, balanceBefore);
         vm.stopPrank();
     }
 }
