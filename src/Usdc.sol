@@ -17,14 +17,14 @@ contract AddWhiteist {
 
     function addWhitelist(
         address _account
-    ) external onlyWhitelist returns (bool) {
-        _addWhitelist(_addr);
+    ) external whitelistOnly returns (bool) {
+        _addWhitelist(_account);
         return true;
     }
 
     function revokeWhitelist(
         address _account
-    ) external onlyWhitelist returns (bool) {
+    ) external whitelistOnly returns (bool) {
         _revokeWhitelist(_account);
         return true;
     }
@@ -38,7 +38,7 @@ contract AddWhiteist {
     }
 }
 
-contract NewUsdc is AddWhiteist, ERC20 {
+contract NewUsdc is AddWhiteist {
     string public name;
     string public symbol;
     uint8 public decimals;
@@ -50,17 +50,26 @@ contract NewUsdc is AddWhiteist, ERC20 {
     event Mint(address indexed minter, address indexed to, uint256 amount);
     event Transfer(address indexed from, address indexed to, uint256 value);
 
-    function initialize() external {
+    function initialize(
+        string memory _name,
+        string memory _symbol,
+        string memory _currency,
+        uint8 _decimals
+    ) external {
         require(initialized == false, "Already initialized");
-        initializedV2 = true;
+        initialized = true;
+        name = _name;
+        symbol = _symbol;
+        currency = _currency;
+        decimals = _decimals;
         _addWhitelist(msg.sender);
     }
 
-    function mint(uint256 _amount) external onlyWhitelist returns (bool) {
+    function mint(uint256 _amount) external whitelistOnly returns (bool) {
         require(_amount > 0, "Mint amount not greater than 0");
 
-        totalSupply_ = totalSupply_.add(_amount);
-        balances[msg.sender] = balances[msg.sender].add(_amount);
+        totalSupply_ = totalSupply_ + _amount;
+        balances[msg.sender] = balances[msg.sender] + _amount;
         emit Mint(msg.sender, msg.sender, _amount);
         emit Transfer(address(0), msg.sender, _amount);
         return true;
@@ -73,9 +82,9 @@ contract NewUsdc is AddWhiteist, ERC20 {
     function transfer(
         address to,
         uint256 value
-    ) external onlyWhitelist returns (bool) {
+    ) external whitelistOnly returns (bool) {
         require(value > 0, "Transfer amount not greater than 0");
-        _transfer(msg.sender(), to, value);
+        _transfer(msg.sender, to, value);
         return true;
     }
 

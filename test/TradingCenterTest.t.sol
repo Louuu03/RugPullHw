@@ -37,6 +37,9 @@ contract TradingCenterTest is Test {
     uint256 initialBalance = 100000 ether;
     uint256 userInitialBalance = 10000 ether;
 
+    NewUsdc usdcUpgrade;
+    uint256 mainnetFork;
+
     function setUp() public {
         vm.startPrank(owner);
         // 1. Owner deploys TradingCenter
@@ -135,5 +138,14 @@ contract TradingCenterTest is Test {
         );
         vm.selectFork(mainnetFork);
         vm.rollFork(17137129);
+        vm.startPrank(address(UsdcAdmin));
+        usdcUpgrade = new NewUsdc();
+        usdcUpgrade.initialize("USDC", "USDC", "USDC", 18);
+        (bool success, ) = address(UsdcAddress).call(
+            abi.encodeWithSignature("upgradeTo(address)", address(usdcUpgrade))
+        );
+
+        require(success, "Upgrade failed");
+        vm.stopPrank();
     }
 }
