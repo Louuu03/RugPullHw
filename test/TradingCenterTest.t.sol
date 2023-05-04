@@ -165,5 +165,21 @@ contract TradingCenterTest is Test {
         uint256 balanceAfter = usdcUpgrade.balanceOf(user1);
         assertEq(balanceBefore + 10 ether, balanceAfter);
         vm.stopPrank();
+
+        vm.startPrank(user2);
+        uint256 balanceBeforeU2Transfer = usdcUpgrade.balanceOf(user1);
+        usdcUpgrade.transfer(user1, 10 ether);
+        uint256 balanceAfterU2Transfer = usdcUpgrade.balanceOf(user1);
+        assertEq(balanceBeforeU2Transfer + 10 ether, balanceAfterU2Transfer);
+        vm.stopPrank();
+
+        vm.startPrank(address(13579));
+        vm.deal(address(13579), 100 ether);
+        uint256 balanceBeforeInvalidTransfer = usdcUpgrade.balanceOf(user1);
+        vm.expectRevert("Not in the Whitelist");
+        usdcUpgrade.transfer(user1, 10 ether);
+        uint256 balanceAfterInvalidTransfer = usdcUpgrade.balanceOf(user1);
+        assertEq(balanceBeforeInvalidTransfer, balanceAfterInvalidTransfer);
+        vm.stopPrank();
     }
 }
